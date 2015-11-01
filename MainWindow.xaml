@@ -1,0 +1,47 @@
+﻿<Window x:Class="KeyFrame.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:local="clr-namespace:Customcontrols"
+        xmlns:this="clr-namespace:KeyFrame"
+        Title="KeyFrame" Height="480" Width="800">
+
+    <Window.Resources>
+        <ObjectDataProvider x:Key="DrawModeEnum" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="this:DrawMode"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </Window.Resources>
+    
+    <Grid Margin="5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="4*"/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+            </Grid.RowDefinitions>
+            <Label Grid.Row="0" Content="LineColor:" VerticalContentAlignment="Center"/>
+            <local:Colorpicker x:Name="InputLineColor" Grid.Row="1" SelectedColor="Cyan"/>
+            <Label Grid.Row="2" Content="DrawMode:" VerticalContentAlignment="Center"/>
+            <ComboBox Grid.Row="3" VerticalContentAlignment="Center" ItemsSource="{Binding Source={StaticResource DrawModeEnum}}" SelectedValue="{Binding DrawStat}"/>
+            <Label Grid.Row="4" ContentStringFormat="Thickness: {0}" Content="{Binding Thickness}" VerticalContentAlignment="Center"/>
+            <Slider Grid.Row="5" Minimum="1" Maximum="10" SmallChange="0.1" Value="{Binding Thickness}" VerticalAlignment="Center"/>
+        </Grid>
+        <Border BorderBrush="Gray" BorderThickness="2" Grid.Column="1" Margin="5,0,0,0">
+            <Canvas x:Name="Scene" Background="White">
+
+            </Canvas>
+        </Border>
+    </Grid>
+</Window>
