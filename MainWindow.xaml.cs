@@ -21,8 +21,15 @@ namespace KeyFrame {
         Both
     }
 
+    public enum RenderMode {
+        Animation,
+        Fusion,
+        Video
+    }
+
     public partial class MainWindow : Window, INotifyPropertyChanged {
         private DrawMode drawStat = DrawMode.Both;
+        private RenderMode renderStat = RenderMode.Animation;
         private double thickness = 2;
 
         public MainWindow() {
@@ -37,6 +44,16 @@ namespace KeyFrame {
             set {
                 drawStat = value;
                 NotifyPropertyChanged("DrawStat");
+            }
+        }
+
+        public RenderMode RenderStat {
+            get {
+                return renderStat;
+            }
+            set {
+                renderStat = value;
+                NotifyPropertyChanged("RenderStat");
             }
         }
 

@@ -19,7 +19,7 @@
     </UserControl.Resources>
     
     <Grid>
-        <ComboBox Name="superCombo" ItemsSource="{Binding Source={StaticResource colorPropertiesOdp}}" SelectedValuePath="Name" SelectedValue="{Binding ElementName=uccolorpicker, Path=SelectedColor}">
+        <ComboBox Name="superCombo" ItemsSource="{Binding Source={StaticResource colorPropertiesOdp}}" SelectedValuePath="Name" SelectedValue="{Binding ElementName=uccolorpicker, Path=SelectedColor}" VerticalContentAlignment="Center">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
