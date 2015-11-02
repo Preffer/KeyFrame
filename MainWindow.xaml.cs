@@ -39,17 +39,29 @@ namespace KeyFrame {
     }
 
     public partial class MainWindow : Window, INotifyPropertyChanged {
+        public static readonly Algebra.Matrix Hermite = new Algebra.Matrix(new double[4, 4] {
+            {2, -2, 1, 1},
+            {-3, 3, -2, -1},
+            {0, 0, 1, 0},
+            {1, 0, 0, 0}
+        });
+
         private DrawMode drawStat = DrawMode.Begin;
         private DisplayMode displayStat = DisplayMode.Input;
         private RenderMode renderStat = RenderMode.Animation;
         private EditMode editStat = EditMode.None;
+        private double tension = 1;
+        private int grain = 40;
         private Polyline activePolyline;
+        private Polyline activeSmoothLine;
         private int activePointIndex = -1;
 
         public MainWindow() {
             InitializeComponent();
             DataContext = this;
             activePolyline = BeginInputLine;
+            activeSmoothLine = BeginSmoothLine;
+            PropertyChanged += new PropertyChangedEventHandler(SceneChanged);
         }
 
         public DrawMode DrawStat {
@@ -62,14 +74,12 @@ namespace KeyFrame {
                 switch (drawStat) {
                     case (DrawMode.Begin): {
                         activePolyline = BeginInputLine;
+                        activeSmoothLine = BeginSmoothLine;
                         break;
                     }
                     case (DrawMode.End): {
                         activePolyline = EndInputLine;
-                        break;
-                    }
-                    default: {
-                        activePolyline = null;
+                        activeSmoothLine = EndSmoothLine;
                         break;
                     }
                 }
@@ -196,11 +206,42 @@ namespace KeyFrame {
             scaleMatrix.Scale(e.NewSize.Width / e.PreviousSize.Width, e.NewSize.Height / e.PreviousSize.Height);
 
             BeginInputLine.Points = new PointCollection(BeginInputLine.Points.Select(p => p * scaleMatrix));
+            BeginSmoothLine.Points = new PointCollection(BeginSmoothLine.Points.Select(p => p * scaleMatrix));
             EndInputLine.Points = new PointCollection(EndInputLine.Points.Select(p => p * scaleMatrix));
+            EndSmoothLine.Points = new PointCollection(EndSmoothLine.Points.Select(p => p * scaleMatrix));
         }
 
         private void SceneChanged(object sender, PropertyChangedEventArgs e) {
+            if (e.PropertyName == activePolyline.Name) {
+                if (activePolyline.Points.Count > 0) {
+                    List<Point> controlPoint = new List<Point>();
+                    PointCollection smoothPoint = new PointCollection();
 
+                    controlPoint.Add(activePolyline.Points.First());
+                    controlPoint.AddRange(activePolyline.Points);
+                    controlPoint.Add(activePolyline.Points.Last());
+
+                    int count = controlPoint.Count - 3;
+                    double step = 1.0 / grain;
+                    for (int i = 0; i < count; i++) {
+                        for (double u = 0; u < 1.0; u += step) {
+                            smoothPoint.Add(Interpolation(controlPoint[i], controlPoint[i + 1], controlPoint[i + 2], controlPoint[i + 3], u, tension));
+                        }
+                        smoothPoint.Add(Interpolation(controlPoint[i], controlPoint[i + 1], controlPoint[i + 2], controlPoint[i + 3], 1.0, tension));
+                    }
+
+                    activeSmoothLine.Points = smoothPoint;
+                }
+            }
+        }
+
+        private Point Interpolation(Point p0, Point p1, Point p2, Point p3, double u, double t) {
+            Algebra.Vector uVector = new Algebra.Vector(new double[4] { Math.Pow(u, 3), Math.Pow(u, 2), u, 1 });
+            Algebra.Vector uhVector = uVector * Hermite;
+            Algebra.Vector pxVector = new Algebra.Vector(new double[4] { p1.X, p2.X, t * (p2.X - p0.X), t * (p3.X - p1.X) });
+            Algebra.Vector pyVector = new Algebra.Vector(new double[4] { p1.Y, p2.Y, t * (p2.Y - p0.Y), t * (p3.Y - p1.Y) });
+
+            return new Point(uhVector * pxVector, uhVector * pyVector);
         }
     }
 }
