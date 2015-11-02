@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -69,13 +70,17 @@ namespace KeyFrame {
         private Polyline activePolyline;
         private Polyline activeSmoothLine;
         private int activePointIndex = -1;
+        private Timer timer;
+        private double elapsed;
 
         public MainWindow() {
             InitializeComponent();
             DataContext = this;
             activePolyline = BeginInputLine;
             activeSmoothLine = BeginSmoothLine;
-            PropertyChanged += new PropertyChangedEventHandler(SceneChanged);
+            timer = new Timer(40);
+            timer.Elapsed += TimerElapsed;
+            PropertyChanged += SceneChanged;
         }
 
         public DrawMode DrawStat {
@@ -246,7 +251,26 @@ namespace KeyFrame {
         }
 
         private void Run_Click(object sender, RoutedEventArgs e) {
+            elapsed = 0;
+            timer.Start();
+        }
 
+        private void TimerElapsed(object sender, ElapsedEventArgs e) {
+            if (elapsed < duration) {
+                Dispatcher.Invoke(delegate() {
+                    double rate = elapsed / duration;
+                    AnimationLine.Points = new PointCollection(BeginInputLine.Points.Zip<Point, Point, Point>(
+                        EndInputLine.Points,
+                        (begin, end) => begin + rate * (end - begin)
+                    ));
+                });
+                elapsed += 0.04;
+            } else {
+                Dispatcher.Invoke(delegate() {
+                    AnimationLine.Points = EndInputLine.Points;
+                });
+                timer.Stop();
+            }
         }
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e) {
@@ -260,7 +284,7 @@ namespace KeyFrame {
         }
 
         private void SceneChanged(object sender, PropertyChangedEventArgs e) {
-            if (e.PropertyName == activePolyline.Name) {
+            if (e.PropertyName == activePolyline.Name && ShowSmoothLine == Visibility.Visible) {
                 if (activePolyline.Points.Count > 0) {
                     List<Point> controlPoint = new List<Point>();
                     PointCollection smoothPoint = new PointCollection();

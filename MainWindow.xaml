@@ -68,8 +68,8 @@
             <ComboBox Grid.Row="7" VerticalContentAlignment="Center" ItemsSource="{Binding Source={StaticResource TimeModeEnum}}" SelectedValue="{Binding TimeStat}"/>
             <Label Grid.Row="8" Content="RenderMode:" VerticalContentAlignment="Center"/>
             <ComboBox Grid.Row="9" VerticalContentAlignment="Center" ItemsSource="{Binding Source={StaticResource RenderModeEnum}}" SelectedValue="{Binding RenderStat}"/>
-            <Label Grid.Row="10" ContentStringFormat="Duration: {0}" Content="{Binding Duration}" VerticalContentAlignment="Center"/>
-            <Slider Grid.Row="11" Minimum="1" Maximum="10" SmallChange="0.1" Value="{Binding Duration}"/>
+            <Label Grid.Row="10" ContentStringFormat="Duration: {0}s" Content="{Binding Duration}" VerticalContentAlignment="Center"/>
+            <Slider Grid.Row="11" Minimum="0" Maximum="10" SmallChange="0.1" Value="{Binding Duration}"/>
             <Button x:Name="Run" Grid.Row="12" Content="Run" Click="Run_Click" />
         </Grid>
         
@@ -79,6 +79,7 @@
                 <Polyline x:Name="BeginSmoothLine" Stroke="Cyan" StrokeThickness="2" Visibility="{Binding ShowSmoothLine}"></Polyline>
                 <Polyline x:Name="EndInputLine" Stroke="Crimson" StrokeThickness="2" Visibility="{Binding ShowInputLine}"></Polyline>
                 <Polyline x:Name="EndSmoothLine" Stroke="Crimson" StrokeThickness="2" Visibility="{Binding ShowSmoothLine}"></Polyline>
+                <Polyline x:Name="AnimationLine" Stroke="SpringGreen" StrokeThickness="2"></Polyline>
             </Canvas>
         </Border>
     </Grid>
