@@ -25,17 +25,28 @@ namespace KeyFrame {
         Smooth
     }
 
-    public enum RenderMode {
-        Animation,
-        Fusion,
-        Video
-    }
-
     public enum EditMode {
         None,
         Append,
         Move,
         Insert
+    }
+
+    public enum BlendMode {
+        Linear,
+        Vector
+    }
+
+    public enum TimeMode {
+        Linear,
+        Easein,
+        Easeout
+    }
+
+    public enum RenderMode {
+        Animation,
+        Fusion,
+        Video
     }
 
     public partial class MainWindow : Window, INotifyPropertyChanged {
@@ -48,10 +59,13 @@ namespace KeyFrame {
 
         private DrawMode drawStat = DrawMode.Begin;
         private DisplayMode displayStat = DisplayMode.Input;
-        private RenderMode renderStat = RenderMode.Animation;
         private EditMode editStat = EditMode.None;
         private double tension = 1;
         private int grain = 40;
+        private BlendMode blendStat = BlendMode.Linear;
+        private TimeMode timeStat = TimeMode.Linear;
+        private RenderMode renderStat = RenderMode.Animation;
+        private double duration = 2;
         private Polyline activePolyline;
         private Polyline activeSmoothLine;
         private int activePointIndex = -1;
@@ -98,6 +112,26 @@ namespace KeyFrame {
             }
         }
 
+        public BlendMode BlendStat {
+            get {
+                return blendStat;
+            }
+            set {
+                blendStat = value;
+                NotifyPropertyChanged("BlendStat");
+            }
+        }
+
+        public TimeMode TimeStat {
+            get {
+                return timeStat;
+            }
+            set {
+                timeStat = value;
+                NotifyPropertyChanged("TimeStat");
+            }
+        }
+
         public RenderMode RenderStat {
             get {
                 return renderStat;
@@ -105,6 +139,16 @@ namespace KeyFrame {
             set {
                 renderStat = value;
                 NotifyPropertyChanged("RenderStat");
+            }
+        }
+
+        public double Duration {
+            get {
+                return duration;
+            }
+            set {
+                duration = value;
+                NotifyPropertyChanged("Duration");
             }
         }
 
@@ -201,6 +245,10 @@ namespace KeyFrame {
             }
         }
 
+        private void Run_Click(object sender, RoutedEventArgs e) {
+
+        }
+
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e) {
             Matrix scaleMatrix = new Matrix();
             scaleMatrix.Scale(e.NewSize.Width / e.PreviousSize.Width, e.NewSize.Height / e.PreviousSize.Height);
@@ -243,5 +291,6 @@ namespace KeyFrame {
 
             return new Point(uhVector * pxVector, uhVector * pyVector);
         }
+
     }
 }

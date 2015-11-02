@@ -23,6 +23,18 @@
                 <x:Type TypeName="this:RenderMode"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="BlendModeEnum" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="this:BlendMode"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="TimeModeEnum" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="this:TimeMode"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
     </Window.Resources>
     
     <Grid Margin="5">
@@ -41,14 +53,24 @@
                 <RowDefinition Height="1*" />
                 <RowDefinition Height="1*" />
                 <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
             </Grid.RowDefinitions>
             <Label Grid.Row="0" Content="DrawMode:" VerticalContentAlignment="Center"/>
             <ComboBox Grid.Row="1" VerticalContentAlignment="Center" ItemsSource="{Binding Source={StaticResource DrawModeEnum}}" SelectedValue="{Binding DrawStat}"/>
             <Label Grid.Row="2" Content="DisplayMode:" VerticalContentAlignment="Center"/>
             <ComboBox Grid.Row="3" VerticalContentAlignment="Center" ItemsSource="{Binding Source={StaticResource DisplayModeEnum}}" SelectedValue="{Binding DisplayStat}"/>
-            <Label Grid.Row="4" Content="RenderMode:" VerticalContentAlignment="Center"/>
-            <ComboBox Grid.Row="5" VerticalContentAlignment="Center" ItemsSource="{Binding Source={StaticResource RenderModeEnum}}" SelectedValue="{Binding RenderStat}"/>
-            <Button x:Name="Run" Grid.Row="6" Content="Run" />
+            <Label Grid.Row="4" Content="BlendMode:" VerticalContentAlignment="Center"/>
+            <ComboBox Grid.Row="5" VerticalContentAlignment="Center" ItemsSource="{Binding Source={StaticResource BlendModeEnum}}" SelectedValue="{Binding BlendStat}"/>
+            <Label Grid.Row="6" Content="TimeMode:" VerticalContentAlignment="Center"/>
+            <ComboBox Grid.Row="7" VerticalContentAlignment="Center" ItemsSource="{Binding Source={StaticResource TimeModeEnum}}" SelectedValue="{Binding TimeStat}"/>
+            <Label Grid.Row="8" Content="RenderMode:" VerticalContentAlignment="Center"/>
+            <ComboBox Grid.Row="9" VerticalContentAlignment="Center" ItemsSource="{Binding Source={StaticResource RenderModeEnum}}" SelectedValue="{Binding RenderStat}"/>
+            <Label Grid.Row="10" ContentStringFormat="Duration: {0}" Content="{Binding Duration}" VerticalContentAlignment="Center"/>
+            <Slider Grid.Row="11" Minimum="1" Maximum="10" SmallChange="0.1" Value="{Binding Duration}"/>
+            <Button x:Name="Run" Grid.Row="12" Content="Run" Click="Run_Click" />
         </Grid>
         
         <Border BorderBrush="Gray" BorderThickness="2" Grid.Column="1" Margin="5,0,0,0">
