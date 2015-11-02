@@ -2,17 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace KeyFrame {
@@ -74,6 +69,7 @@ namespace KeyFrame {
         private double elapsed;
         private List<Polar> beginPolar;
         private List<Polar> endPolar;
+        private const double SNAP_DISTANCE = 400;
 
         public MainWindow() {
             InitializeComponent();
@@ -185,19 +181,19 @@ namespace KeyFrame {
                     if (activePolyline.Points.Count == 0) {
                         activePolyline.Points.Add(e.GetPosition(Scene));
                     }
-                    activePolyline.Points.Add(e.GetPosition(Scene));
+                    activePolyline.Points.Add(ApplySnap(e.GetPosition(Scene)));
                     NotifyPropertyChanged(activePolyline.Name);
 
                     activePointIndex = activePolyline.Points.Count - 1;
                     editStat = EditMode.Append;
                 }
                 if (e.MiddleButton == MouseButtonState.Pressed && activePolyline.Points.Count > 0) {
-                    Point clicked = e.GetPosition(Scene);
+                    Point clicked = ApplySnap(e.GetPosition(Scene));
                     activePointIndex = activePolyline.Points.Select((point, index) => new KeyValuePair<Point, int>(point, index)).OrderBy(pair => (clicked - pair.Key).LengthSquared).First().Value;
                     editStat = EditMode.Move;
                 }
                 if (e.RightButton == MouseButtonState.Pressed && activePolyline.Points.Count >= 2) {
-                    Point clicked = e.GetPosition(Scene);
+                    Point clicked = ApplySnap(e.GetPosition(Scene));
 
                     activePointIndex = activePolyline.Points
                         .Take(activePolyline.Points.Count - 1)
@@ -229,7 +225,7 @@ namespace KeyFrame {
         private void Scene_MouseMove(object sender, MouseEventArgs e) {
             if (activePointIndex != -1) {
                 activePolyline.Points.RemoveAt(activePointIndex);
-                activePolyline.Points.Insert(activePointIndex, e.GetPosition(Scene));
+                activePolyline.Points.Insert(activePointIndex, ApplySnap(e.GetPosition(Scene)));
                 NotifyPropertyChanged(activePolyline.Name);
             }
         }
@@ -374,5 +370,12 @@ namespace KeyFrame {
             return new Point(uhVector * pxVector, uhVector * pyVector);
         }
 
+        private Point ApplySnap(Point p) {
+            if ((activePolyline.Points.First() - p).LengthSquared < SNAP_DISTANCE) {
+                return activePolyline.Points.First();
+            } else {
+                return p;
+            }
+        }
     }
 }
