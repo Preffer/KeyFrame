@@ -42,7 +42,7 @@
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="4*"/>
         </Grid.ColumnDefinitions>
-        <Grid Grid.Column="0">
+        <Grid Grid.Column="0" x:Name="Control">
             <Grid.RowDefinitions>
                 <RowDefinition Height="1*" />
                 <RowDefinition Height="1*" />
@@ -68,8 +68,8 @@
             <ComboBox Grid.Row="7" VerticalContentAlignment="Center" ItemsSource="{Binding Source={StaticResource TimeModeEnum}}" SelectedValue="{Binding TimeStat}"/>
             <Label Grid.Row="8" Content="RenderMode:" VerticalContentAlignment="Center"/>
             <ComboBox Grid.Row="9" VerticalContentAlignment="Center" ItemsSource="{Binding Source={StaticResource RenderModeEnum}}" SelectedValue="{Binding RenderStat}"/>
-            <Label Grid.Row="10" ContentStringFormat="Duration: {0}s" Content="{Binding Duration}" VerticalContentAlignment="Center"/>
-            <Slider Grid.Row="11" Minimum="0" Maximum="10" SmallChange="0.001" Value="{Binding Duration}"/>
+            <Label Grid.Row="10" ContentStringFormat="Duration: {0:0.00}s" Content="{Binding Duration}" VerticalContentAlignment="Center"/>
+            <Slider Grid.Row="11" Minimum="0" Maximum="10" SmallChange="0.01" Value="{Binding Duration}"/>
             <Button x:Name="Run" Grid.Row="12" Content="Run" Click="Run_Click" />
         </Grid>
         

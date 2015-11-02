@@ -72,6 +72,8 @@ namespace KeyFrame {
         private int activePointIndex = -1;
         private Timer timer;
         private double elapsed;
+        private List<Polar> beginPolar;
+        private List<Polar> endPolar;
 
         public MainWindow() {
             InitializeComponent();
@@ -178,40 +180,42 @@ namespace KeyFrame {
         }
 
         private void Scene_MouseDown(object sender, MouseButtonEventArgs e) {
-            if (e.LeftButton == MouseButtonState.Pressed) {
-                if (activePolyline.Points.Count == 0) {
+            if (Control.IsEnabled) {
+                if (e.LeftButton == MouseButtonState.Pressed) {
+                    if (activePolyline.Points.Count == 0) {
+                        activePolyline.Points.Add(e.GetPosition(Scene));
+                    }
                     activePolyline.Points.Add(e.GetPosition(Scene));
+                    NotifyPropertyChanged(activePolyline.Name);
+
+                    activePointIndex = activePolyline.Points.Count - 1;
+                    editStat = EditMode.Append;
                 }
-                activePolyline.Points.Add(e.GetPosition(Scene));
-                NotifyPropertyChanged(activePolyline.Name);
+                if (e.MiddleButton == MouseButtonState.Pressed && activePolyline.Points.Count > 0) {
+                    Point clicked = e.GetPosition(Scene);
+                    activePointIndex = activePolyline.Points.Select((point, index) => new KeyValuePair<Point, int>(point, index)).OrderBy(pair => (clicked - pair.Key).LengthSquared).First().Value;
+                    editStat = EditMode.Move;
+                }
+                if (e.RightButton == MouseButtonState.Pressed && activePolyline.Points.Count >= 2) {
+                    Point clicked = e.GetPosition(Scene);
 
-                activePointIndex = activePolyline.Points.Count - 1;
-                editStat = EditMode.Append;
-            }
-            if (e.MiddleButton == MouseButtonState.Pressed && activePolyline.Points.Count > 0) {
-                Point clicked = e.GetPosition(Scene);
-                activePointIndex = activePolyline.Points.Select((point, index) => new KeyValuePair<Point, int>(point, index)).OrderBy(pair => (clicked - pair.Key).LengthSquared).First().Value;
-                editStat = EditMode.Move;
-            }
-            if (e.RightButton == MouseButtonState.Pressed && activePolyline.Points.Count >= 2) {
-                Point clicked = e.GetPosition(Scene);
+                    activePointIndex = activePolyline.Points
+                        .Take(activePolyline.Points.Count - 1)
+                        .Select((point, index) => new KeyValuePair<Point, int>(point, index))
+                        .Zip<KeyValuePair<Point, int>, Point, KeyValuePair<double, int>>(
+                            activePolyline.Points.Skip(1),
+                            (one, two) => new KeyValuePair<double, int>(
+                                (Math.Abs(Vector.AngleBetween(clicked - one.Key, two - one.Key)) < 90 && Math.Abs(Vector.AngleBetween(clicked - two, one.Key - two)) < 90)
+                                ? Math.Abs(Vector.CrossProduct(clicked - one.Key, clicked - two) / 2 / (one.Key - two).Length)
+                                : Math.Min((clicked - one.Key).Length, (clicked - two).Length),
+                                one.Value
+                            )
+                        ).OrderBy(pair => pair.Key).First().Value + 1;
 
-                activePointIndex = activePolyline.Points
-                    .Take(activePolyline.Points.Count - 1)
-                    .Select((point, index) => new KeyValuePair<Point, int>(point, index))
-                    .Zip<KeyValuePair<Point, int>, Point, KeyValuePair<double, int>>(
-                        activePolyline.Points.Skip(1),
-                        (one, two) => new KeyValuePair<double, int>(
-                            (Math.Abs(Vector.AngleBetween(clicked - one.Key, two - one.Key)) < 90 && Math.Abs(Vector.AngleBetween(clicked - two, one.Key - two)) < 90)
-                            ? Math.Abs(Vector.CrossProduct(clicked - one.Key, clicked - two) / 2 / (one.Key - two).Length)
-                            : Math.Min((clicked - one.Key).Length, (clicked - two).Length),
-                            one.Value
-                        )
-                    ).OrderBy(pair => pair.Key).First().Value + 1;
-
-                activePolyline.Points.Insert(activePointIndex, clicked);
-                NotifyPropertyChanged(activePolyline.Name);
-                editStat = EditMode.Insert;
+                    activePolyline.Points.Insert(activePointIndex, clicked);
+                    NotifyPropertyChanged(activePolyline.Name);
+                    editStat = EditMode.Insert;
+                }
             }
         }
 
@@ -251,13 +255,21 @@ namespace KeyFrame {
         }
 
         private void Run_Click(object sender, RoutedEventArgs e) {
+            switch (blendStat) {
+                case (BlendMode.Vector): {
+                    beginPolar = PointToPolar(BeginInputLine.Points);
+                    endPolar = PointToPolar(EndInputLine.Points);
+                    break;
+                }
+            }
+
             elapsed = 0;
             timer.Start();
-            Run.IsEnabled = false;
+            Control.IsEnabled = false;
         }
 
         private void TimerElapsed(object sender, ElapsedEventArgs e) {
-            if (elapsed < duration) {
+            if (elapsed <= duration) {
                 Dispatcher.Invoke(delegate() {
                     double rate = elapsed / duration;
                     switch (timeStat) {
@@ -270,18 +282,24 @@ namespace KeyFrame {
                             break;
                         }
                     }
-                    BlendInputLine.Points = new PointCollection(BeginInputLine.Points.Zip<Point, Point, Point>(
-                        EndInputLine.Points,
-                        (begin, end) => begin + rate * (end - begin)
-                    ));
+                    switch (blendStat) {
+                        case (BlendMode.Linear): {
+                            BlendInputLine.Points = LinearBlend(BeginInputLine.Points, EndInputLine.Points, rate);
+                            break;
+                        }
+                        case (BlendMode.Vector): {
+                            BlendInputLine.Points = VectorBlend(BeginInputLine.Points, EndInputLine.Points, beginPolar, endPolar, rate);
+                            break;
+                        }
+                    }
                     BlendSmoothLine.Points = SmoothLine(BlendInputLine.Points);
                 });
                 elapsed += 0.04;
             } else {
                 Dispatcher.Invoke(delegate() {
-                    BlendInputLine.Points = EndInputLine.Points;
-                    BlendSmoothLine.Points = SmoothLine(BlendInputLine.Points);
-                    Run.IsEnabled = true;
+                    BlendInputLine.Points.Clear();
+                    BlendSmoothLine.Points.Clear();
+                    Control.IsEnabled = true;
                 });
                 timer.Stop();
             }
@@ -305,6 +323,26 @@ namespace KeyFrame {
                     activeSmoothLine.Points = SmoothLine(activePolyline.Points);
                 }
             }
+        }
+
+        private PointCollection LinearBlend(PointCollection beginLine, PointCollection endLine, double rate) {
+            return new PointCollection(beginLine.Zip<Point, Point, Point>(endLine, (begin, end) => begin + rate * (end - begin)));
+        }
+
+        private PointCollection VectorBlend(PointCollection beginLine, PointCollection endLine, List<Polar> beginPolar, List<Polar> endPolar, double rate) {
+            PointCollection blend = new PointCollection();
+            blend.Add(beginLine.First() + rate * (endLine.First() - beginLine.First()));
+            int length = beginPolar.Count;
+
+            for (int i = 0; i < length; i++) {
+                blend.Add(blend.Last() + (beginPolar[i] * (1 - rate) + endPolar[i] * rate).ToVector());
+            }
+
+            return blend;
+        }
+
+        private List<Polar> PointToPolar(PointCollection line) {
+            return new List<Polar>(line.Zip<Point, Point, Polar>(line.Skip(1), (one, two) => new Polar(two - one)));
         }
 
         private PointCollection SmoothLine(PointCollection inputLine) {
