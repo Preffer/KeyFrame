@@ -1,8 +1,12 @@
 ﻿<Application x:Class="KeyFrame.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:System="clr-namespace:System;assembly=mscorlib"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <System:String x:Key="DrawShapeTitle">Draw shape first</System:String>
+        <System:String x:Key="DrawShapeText">Please draw begin shape and end shape first</System:String>
+        <System:String x:Key="PointDismatchTitle">Points amount dismatch</System:String>
+        <System:String x:Key="PointDismatchText">Begin shape and end shape must have same amount of points</System:String>
     </Application.Resources>
 </Application>

@@ -39,12 +39,6 @@ namespace KeyFrame {
         Easeout
     }
 
-    public enum RenderMode {
-        Animation,
-        Fusion,
-        Video
-    }
-
     public partial class MainWindow : Window, INotifyPropertyChanged {
         public static readonly Algebra.Matrix Hermite = new Algebra.Matrix(new double[4, 4] {
             {2, -2, 1, 1},
@@ -60,7 +54,6 @@ namespace KeyFrame {
         private int grain = 40;
         private BlendMode blendStat = BlendMode.Linear;
         private TimeMode timeStat = TimeMode.Linear;
-        private RenderMode renderStat = RenderMode.Animation;
         private double duration = 2;
         private Polyline activePolyline;
         private Polyline activeSmoothLine;
@@ -132,16 +125,6 @@ namespace KeyFrame {
             set {
                 timeStat = value;
                 NotifyPropertyChanged("TimeStat");
-            }
-        }
-
-        public RenderMode RenderStat {
-            get {
-                return renderStat;
-            }
-            set {
-                renderStat = value;
-                NotifyPropertyChanged("RenderStat");
             }
         }
 
@@ -251,17 +234,55 @@ namespace KeyFrame {
         }
 
         private void Run_Click(object sender, RoutedEventArgs e) {
-            switch (blendStat) {
-                case (BlendMode.Vector): {
-                    beginPolar = PointToPolar(BeginInputLine.Points);
-                    endPolar = PointToPolar(EndInputLine.Points);
-                    break;
+            if (BeginInputLine.Points.Count > 0 && EndInputLine.Points.Count > 0) {
+                if (BeginInputLine.Points.Count == EndInputLine.Points.Count) {
+                    switch (blendStat) {
+                        case (BlendMode.Vector): {
+                            beginPolar = PointToPolar(BeginInputLine.Points);
+                            endPolar = PointToPolar(EndInputLine.Points);
+                            break;
+                        }
+                    }
+                    elapsed = 0;
+                    timer.Start();
+                    Control.IsEnabled = false;
+                } else {
+                    MessageBox.Show(FindResource("PointDismatchText") as string, FindResource("PointDismatchTitle") as string, MessageBoxButton.OK, MessageBoxImage.Stop);
                 }
+            } else {
+                MessageBox.Show(FindResource("DrawShapeText") as string, FindResource("DrawShapeTitle") as string, MessageBoxButton.OK, MessageBoxImage.Stop);
             }
+        }
 
-            elapsed = 0;
-            timer.Start();
-            Control.IsEnabled = false;
+        private void Render_Click(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void Load_Click(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void Save_Click(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void Clear_Click(object sender, RoutedEventArgs e) {
+            BeginInputLine.Points.Clear();
+            BeginSmoothLine.Points.Clear();
+            EndInputLine.Points.Clear();
+            EndSmoothLine.Points.Clear();
+            activePointIndex = -1;
+            editStat = EditMode.None;
+        }
+
+        private void Help_Click(object sender, RoutedEventArgs e) {
+            string helpText = "Click left button to append point\n"
+                            + "Click middle button to move the nearest point\n"
+                            + "Click right button to insert point\n"
+                            + "Press Escape to save pending modification\n"
+                            + "Press Delete to delete the pending point";
+
+            MessageBox.Show(helpText, "Help", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void TimerElapsed(object sender, ElapsedEventArgs e) {
@@ -377,5 +398,6 @@ namespace KeyFrame {
                 return p;
             }
         }
+
     }
 }

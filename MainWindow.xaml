@@ -18,12 +18,6 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
-        <ObjectDataProvider x:Key="RenderModeEnum" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
-            <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="this:RenderMode"/>
-            </ObjectDataProvider.MethodParameters>
-        </ObjectDataProvider>
-
         <ObjectDataProvider x:Key="BlendModeEnum" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="this:BlendMode"/>
@@ -40,10 +34,13 @@
     <Grid Margin="5">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="4*"/>
+            <ColumnDefinition Width="5*"/>
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0" x:Name="Control">
             <Grid.RowDefinitions>
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
                 <RowDefinition Height="1*" />
                 <RowDefinition Height="1*" />
                 <RowDefinition Height="1*" />
@@ -66,11 +63,14 @@
             <ComboBox Grid.Row="5" VerticalContentAlignment="Center" ItemsSource="{Binding Source={StaticResource BlendModeEnum}}" SelectedValue="{Binding BlendStat}"/>
             <Label Grid.Row="6" Content="TimeMode:" VerticalContentAlignment="Center"/>
             <ComboBox Grid.Row="7" VerticalContentAlignment="Center" ItemsSource="{Binding Source={StaticResource TimeModeEnum}}" SelectedValue="{Binding TimeStat}"/>
-            <Label Grid.Row="8" Content="RenderMode:" VerticalContentAlignment="Center"/>
-            <ComboBox Grid.Row="9" VerticalContentAlignment="Center" ItemsSource="{Binding Source={StaticResource RenderModeEnum}}" SelectedValue="{Binding RenderStat}"/>
-            <Label Grid.Row="10" ContentStringFormat="Duration: {0:0.00}s" Content="{Binding Duration}" VerticalContentAlignment="Center"/>
-            <Slider Grid.Row="11" Minimum="0" Maximum="10" SmallChange="0.01" Value="{Binding Duration}"/>
-            <Button x:Name="Run" Grid.Row="12" Content="Run" Click="Run_Click" />
+            <Label Grid.Row="8" ContentStringFormat="Duration: {0:0.00}s" Content="{Binding Duration}" VerticalContentAlignment="Center"/>
+            <Slider Grid.Row="9" Minimum="0" Maximum="10" SmallChange="0.01" Value="{Binding Duration}"/>
+            <Button x:Name="Run" Grid.Row="10" Content="Run" Click="Run_Click" Margin="0,2.5,0,0" />
+            <Button x:Name="Render" Grid.Row="11" Content="Render" Click="Render_Click" Margin="0,2.5,0,0" />
+            <Button x:Name="Load" Grid.Row="12" Content="Load" Click="Load_Click" Margin="0,2.5,0,0" />
+            <Button x:Name="Save" Grid.Row="13" Content="Save" Click="Save_Click" Margin="0,2.5,0,0" />
+            <Button x:Name="Clear" Grid.Row="14" Content="Clear" Click="Clear_Click" Margin="0,2.5,0,0" />
+            <Button x:Name="Help" Grid.Row="15" Content="Help" Click="Help_Click" Margin="0,2.5,0,0" />
         </Grid>
         
         <Border BorderBrush="Gray" BorderThickness="2" Grid.Column="1" Margin="5,0,0,0">
