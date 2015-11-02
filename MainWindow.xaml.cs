@@ -89,7 +89,6 @@ namespace KeyFrame {
             }
             set {
                 drawStat = value;
-                NotifyPropertyChanged("DrawStat");
                 switch (drawStat) {
                     case (DrawMode.Begin): {
                         activePolyline = BeginInputLine;
@@ -102,6 +101,7 @@ namespace KeyFrame {
                         break;
                     }
                 }
+                NotifyPropertyChanged("DrawStat");
             }
         }
 
@@ -253,21 +253,35 @@ namespace KeyFrame {
         private void Run_Click(object sender, RoutedEventArgs e) {
             elapsed = 0;
             timer.Start();
+            Run.IsEnabled = false;
         }
 
         private void TimerElapsed(object sender, ElapsedEventArgs e) {
             if (elapsed < duration) {
                 Dispatcher.Invoke(delegate() {
                     double rate = elapsed / duration;
-                    AnimationLine.Points = new PointCollection(BeginInputLine.Points.Zip<Point, Point, Point>(
+                    switch (timeStat) {
+                        case (TimeMode.Easein): {
+                            rate = 1 - Math.Cos(Math.PI * rate / 2);
+                            break;
+                        }
+                        case (TimeMode.Easeout): {
+                            rate = Math.Sin(Math.PI * rate / 2);
+                            break;
+                        }
+                    }
+                    BlendInputLine.Points = new PointCollection(BeginInputLine.Points.Zip<Point, Point, Point>(
                         EndInputLine.Points,
                         (begin, end) => begin + rate * (end - begin)
                     ));
+                    BlendSmoothLine.Points = SmoothLine(BlendInputLine.Points);
                 });
                 elapsed += 0.04;
             } else {
                 Dispatcher.Invoke(delegate() {
-                    AnimationLine.Points = EndInputLine.Points;
+                    BlendInputLine.Points = EndInputLine.Points;
+                    BlendSmoothLine.Points = SmoothLine(BlendInputLine.Points);
+                    Run.IsEnabled = true;
                 });
                 timer.Stop();
             }
@@ -281,30 +295,36 @@ namespace KeyFrame {
             BeginSmoothLine.Points = new PointCollection(BeginSmoothLine.Points.Select(p => p * scaleMatrix));
             EndInputLine.Points = new PointCollection(EndInputLine.Points.Select(p => p * scaleMatrix));
             EndSmoothLine.Points = new PointCollection(EndSmoothLine.Points.Select(p => p * scaleMatrix));
+            BlendInputLine.Points = new PointCollection(BlendInputLine.Points.Select(p => p * scaleMatrix));
+            BlendSmoothLine.Points = new PointCollection(BlendSmoothLine.Points.Select(p => p * scaleMatrix));
         }
 
         private void SceneChanged(object sender, PropertyChangedEventArgs e) {
-            if (e.PropertyName == activePolyline.Name && ShowSmoothLine == Visibility.Visible) {
+            if (e.PropertyName == activePolyline.Name) {
                 if (activePolyline.Points.Count > 0) {
-                    List<Point> controlPoint = new List<Point>();
-                    PointCollection smoothPoint = new PointCollection();
-
-                    controlPoint.Add(activePolyline.Points.First());
-                    controlPoint.AddRange(activePolyline.Points);
-                    controlPoint.Add(activePolyline.Points.Last());
-
-                    int count = controlPoint.Count - 3;
-                    double step = 1.0 / grain;
-                    for (int i = 0; i < count; i++) {
-                        for (double u = 0; u < 1.0; u += step) {
-                            smoothPoint.Add(Interpolation(controlPoint[i], controlPoint[i + 1], controlPoint[i + 2], controlPoint[i + 3], u, tension));
-                        }
-                        smoothPoint.Add(Interpolation(controlPoint[i], controlPoint[i + 1], controlPoint[i + 2], controlPoint[i + 3], 1.0, tension));
-                    }
-
-                    activeSmoothLine.Points = smoothPoint;
+                    activeSmoothLine.Points = SmoothLine(activePolyline.Points);
                 }
             }
+        }
+
+        private PointCollection SmoothLine(PointCollection inputLine) {
+            List<Point> controlPoint = new List<Point>();
+            PointCollection smoothPoint = new PointCollection();
+
+            controlPoint.Add(inputLine.First());
+            controlPoint.AddRange(inputLine);
+            controlPoint.Add(inputLine.Last());
+
+            int count = controlPoint.Count - 3;
+            double step = 1.0 / grain;
+            for (int i = 0; i < count; i++) {
+                for (double u = 0; u < 1.0; u += step) {
+                    smoothPoint.Add(Interpolation(controlPoint[i], controlPoint[i + 1], controlPoint[i + 2], controlPoint[i + 3], u, tension));
+                }
+                smoothPoint.Add(Interpolation(controlPoint[i], controlPoint[i + 1], controlPoint[i + 2], controlPoint[i + 3], 1.0, tension));
+            }
+
+            return smoothPoint;
         }
 
         private Point Interpolation(Point p0, Point p1, Point p2, Point p3, double u, double t) {
