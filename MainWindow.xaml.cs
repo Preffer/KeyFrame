@@ -348,12 +348,13 @@ namespace KeyFrame {
 
         private PointCollection VectorBlend(PointCollection beginLine, PointCollection endLine, List<Polar> beginPolar, List<Polar> endPolar, double rate) {
             PointCollection blend = new PointCollection();
-            blend.Add(beginLine.First() + rate * (endLine.First() - beginLine.First()));
-            int length = beginPolar.Count;
+            int count = beginPolar.Count - 1;
 
-            for (int i = 0; i < length; i++) {
+            blend.Add(beginLine.First() + rate * (endLine.First() - beginLine.First()));
+            for (int i = 0; i < count; i++) {
                 blend.Add(blend.Last() + (beginPolar[i] * (1 - rate) + endPolar[i] * rate).ToVector());
             }
+            blend.Add(beginLine.Last() + rate * (endLine.Last() - beginLine.Last()));
 
             return blend;
         }
@@ -366,9 +367,15 @@ namespace KeyFrame {
             List<Point> controlPoint = new List<Point>();
             PointCollection smoothPoint = new PointCollection();
 
-            controlPoint.Add(inputLine.First());
-            controlPoint.AddRange(inputLine);
-            controlPoint.Add(inputLine.Last());
+            if (inputLine.First() == inputLine.Last()) {
+                controlPoint.Add(inputLine.ElementAt(inputLine.Count - 2));
+                controlPoint.AddRange(inputLine);
+                controlPoint.Add(inputLine.ElementAt(1));
+            } else {
+                controlPoint.Add(inputLine.First());
+                controlPoint.AddRange(inputLine);
+                controlPoint.Add(inputLine.Last());
+            }
 
             int count = controlPoint.Count - 3;
             double step = 1.0 / grain;
