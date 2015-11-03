@@ -96,6 +96,21 @@ namespace KeyFrame {
             }
         }
 
+        private List<Polar> activePolar {
+            set {
+                switch (drawStat) {
+                    case (DrawMode.Begin): {
+                        beginPolar = value;
+                        break;
+                    }
+                    case (DrawMode.End): {
+                        endPolar = value;
+                        break;
+                    }
+                }
+            }
+        }
+
         public DisplayMode DisplayStat {
             get {
                 return displayStat;
@@ -159,7 +174,7 @@ namespace KeyFrame {
         }
 
         private void Scene_MouseDown(object sender, MouseButtonEventArgs e) {
-            if (Control.IsEnabled) {
+            if (Run.IsEnabled) {
                 if (e.LeftButton == MouseButtonState.Pressed) {
                     if (activePolyline.Points.Count == 0) {
                         activePolyline.Points.Add(e.GetPosition(Scene));
@@ -236,16 +251,9 @@ namespace KeyFrame {
         private void Run_Click(object sender, RoutedEventArgs e) {
             if (BeginInputLine.Points.Count > 0 && EndInputLine.Points.Count > 0) {
                 if (BeginInputLine.Points.Count == EndInputLine.Points.Count) {
-                    switch (blendStat) {
-                        case (BlendMode.Vector): {
-                            beginPolar = PointToPolar(BeginInputLine.Points);
-                            endPolar = PointToPolar(EndInputLine.Points);
-                            break;
-                        }
-                    }
                     elapsed = 0;
                     timer.Start();
-                    Control.IsEnabled = false;
+                    Run.IsEnabled = false;
                 } else {
                     MessageBox.Show(FindResource("PointDismatchText") as string, FindResource("PointDismatchTitle") as string, MessageBoxButton.OK, MessageBoxImage.Stop);
                 }
@@ -267,12 +275,16 @@ namespace KeyFrame {
         }
 
         private void Clear_Click(object sender, RoutedEventArgs e) {
+            timer.Stop();
             BeginInputLine.Points.Clear();
             BeginSmoothLine.Points.Clear();
             EndInputLine.Points.Clear();
             EndSmoothLine.Points.Clear();
+            BlendInputLine.Points.Clear();
+            BlendSmoothLine.Points.Clear();
             activePointIndex = -1;
             editStat = EditMode.None;
+            Run.IsEnabled = true;
         }
 
         private void Help_Click(object sender, RoutedEventArgs e) {
@@ -316,7 +328,7 @@ namespace KeyFrame {
                 Dispatcher.Invoke(delegate() {
                     BlendInputLine.Points.Clear();
                     BlendSmoothLine.Points.Clear();
-                    Control.IsEnabled = true;
+                    Run.IsEnabled = true;
                 });
                 timer.Stop();
             }
@@ -338,6 +350,7 @@ namespace KeyFrame {
             if (e.PropertyName == activePolyline.Name) {
                 if (activePolyline.Points.Count > 0) {
                     activeSmoothLine.Points = SmoothLine(activePolyline.Points);
+                    activePolar = PointToPolar(activePolyline.Points);
                 }
             }
         }
