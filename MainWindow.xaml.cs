@@ -431,13 +431,12 @@ namespace KeyFrame {
 
         private PointCollection VectorBlend(PointCollection beginLine, PointCollection endLine, List<Polar> beginPolar, List<Polar> endPolar, double rate) {
             PointCollection blend = new PointCollection();
-            int count = beginPolar.Count - 1;
-
             blend.Add(beginLine.First() + rate * (endLine.First() - beginLine.First()));
+
+            int count = beginPolar.Count;
             for (int i = 0; i < count; i++) {
                 blend.Add(blend.Last() + (beginPolar[i] * (1 - rate) + endPolar[i] * rate).ToVector());
             }
-            blend.Add(beginLine.Last() + rate * (endLine.Last() - beginLine.Last()));
 
             return blend;
         }
