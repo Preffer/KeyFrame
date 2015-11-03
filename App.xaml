@@ -8,5 +8,9 @@
         <System:String x:Key="DrawShapeText">Please draw begin shape and end shape first</System:String>
         <System:String x:Key="PointDismatchTitle">Points amount dismatch</System:String>
         <System:String x:Key="PointDismatchText">Begin shape and end shape must have same amount of points</System:String>
+        <System:String x:Key="SceneSaveTitle">Scene saved</System:String>
+        <System:String x:Key="SceneSaveText">Scene has been saved to</System:String>
+        <System:String x:Key="SceneLoadTitle">Scene loaded</System:String>
+        <System:String x:Key="SceneLoadText">Scene has been loaded from</System:String>
     </Application.Resources>
 </Application>

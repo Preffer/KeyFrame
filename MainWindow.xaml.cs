@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Timers;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace KeyFrame {
     public enum DrawMode {
@@ -267,11 +270,52 @@ namespace KeyFrame {
         }
 
         private void Load_Click(object sender, RoutedEventArgs e) {
+            System.Windows.Forms.OpenFileDialog dialog = new System.Windows.Forms.OpenFileDialog();
+            dialog.DefaultExt = "xml";
+            dialog.Filter = "XML Files (*.xml)|*.xml";
 
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                Matrix scaleMatrix = new Matrix();
+                scaleMatrix.Scale(ActualWidth, ActualHeight);
+
+                using (FileStream reader = new FileStream(dialog.FileName, FileMode.Open)) {
+                    SceneArchive archive = (SceneArchive)(new XmlSerializer(typeof(SceneArchive))).Deserialize(reader);
+
+                    DrawMode originStat = DrawStat;
+                    DrawStat = DrawMode.Begin;
+                    BeginInputLine.Points = new PointCollection(archive.Begin.Select(p => p * scaleMatrix));
+                    NotifyPropertyChanged(activePolyline.Name);
+
+                    DrawStat = DrawMode.End;
+                    EndInputLine.Points = new PointCollection(archive.End.Select(p => p * scaleMatrix));
+                    NotifyPropertyChanged(activePolyline.Name);
+                    DrawStat = originStat;
+                }
+
+                MessageBox.Show(FindResource("SceneLoadText") as string + dialog.FileName, FindResource("SceneLoadTitle") as string, MessageBoxButton.OK, MessageBoxImage.Information);
+            } 
         }
 
         private void Save_Click(object sender, RoutedEventArgs e) {
+            System.Windows.Forms.SaveFileDialog dialog = new System.Windows.Forms.SaveFileDialog();
+            dialog.DefaultExt = "xml";
+            dialog.Filter = "XML Files (*.xml)|*.xml";
 
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                Matrix scaleMatrix = new Matrix();
+                scaleMatrix.Scale(1 / ActualWidth, 1 / ActualHeight);
+
+                SceneArchive archive = new SceneArchive(
+                    new PointCollection(BeginInputLine.Points.Select(p => p * scaleMatrix)),
+                    new PointCollection(EndInputLine.Points.Select(p => p * scaleMatrix))
+                );
+
+                using (FileStream writer = new FileStream(dialog.FileName, FileMode.Create)) {
+                    (new XmlSerializer(archive.GetType())).Serialize(writer, archive);
+                }
+
+                MessageBox.Show(FindResource("SceneSaveText") as string + dialog.FileName, FindResource("SceneSaveTitle") as string, MessageBoxButton.OK, MessageBoxImage.Information);
+            } 
         }
 
         private void Clear_Click(object sender, RoutedEventArgs e) {

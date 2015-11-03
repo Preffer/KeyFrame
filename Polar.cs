@@ -2,7 +2,7 @@
 using System.Windows;
 
 namespace KeyFrame {
-    class Polar {
+    public class Polar {
         public double radius;
         public double angle;
 
