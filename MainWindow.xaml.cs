@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Xml;
 using System.Xml.Serialization;
@@ -66,6 +67,9 @@ namespace KeyFrame {
         private List<Polar> beginPolar;
         private List<Polar> endPolar;
         private const double SNAP_DISTANCE = 400;
+        private bool rendering = false;
+        private string path;
+        RenderTargetBitmap bitmap;
 
         public MainWindow() {
             InitializeComponent();
@@ -257,6 +261,7 @@ namespace KeyFrame {
                     elapsed = 0;
                     timer.Start();
                     Run.IsEnabled = false;
+                    Render.IsEnabled = false;
                 } else {
                     MessageBox.Show(FindResource("PointDismatchText") as string, FindResource("PointDismatchTitle") as string, MessageBoxButton.OK, MessageBoxImage.Stop);
                 }
@@ -266,7 +271,13 @@ namespace KeyFrame {
         }
 
         private void Render_Click(object sender, RoutedEventArgs e) {
-
+            System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                path = dialog.SelectedPath;
+                bitmap = new RenderTargetBitmap((int)Scene.ActualWidth, (int)Scene.ActualHeight, 96, 96, PixelFormats.Default);
+                rendering = true;
+                Run_Click(sender, e);
+            }
         }
 
         private void Load_Click(object sender, RoutedEventArgs e) {
@@ -278,7 +289,7 @@ namespace KeyFrame {
                 Matrix scaleMatrix = new Matrix();
                 scaleMatrix.Scale(ActualWidth, ActualHeight);
 
-                using (FileStream reader = new FileStream(dialog.FileName, FileMode.Open)) {
+                using (FileStream reader = File.OpenRead(dialog.FileName)) {
                     SceneArchive archive = (SceneArchive)(new XmlSerializer(typeof(SceneArchive))).Deserialize(reader);
 
                     DrawMode originStat = DrawStat;
@@ -310,7 +321,7 @@ namespace KeyFrame {
                     new PointCollection(EndInputLine.Points.Select(p => p * scaleMatrix))
                 );
 
-                using (FileStream writer = new FileStream(dialog.FileName, FileMode.Create)) {
+                using (FileStream writer = File.Create(dialog.FileName)) {
                     (new XmlSerializer(archive.GetType())).Serialize(writer, archive);
                 }
 
@@ -329,6 +340,7 @@ namespace KeyFrame {
             activePointIndex = -1;
             editStat = EditMode.None;
             Run.IsEnabled = true;
+            Render.IsEnabled = true;
         }
 
         private void Help_Click(object sender, RoutedEventArgs e) {
@@ -366,6 +378,15 @@ namespace KeyFrame {
                         }
                     }
                     BlendSmoothLine.Points = SmoothLine(BlendInputLine.Points);
+
+                    if (rendering) {
+                        bitmap.Render(Scene);
+                        PngBitmapEncoder encoder = new PngBitmapEncoder();
+                        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                        using (FileStream file = File.Create(string.Format("{0}\\frame-{1:000}.png", path, (int)(elapsed * 25)))) {
+                            encoder.Save(file);
+                        }
+                    }
                 });
                 elapsed += 0.04;
             } else {
@@ -373,7 +394,12 @@ namespace KeyFrame {
                     BlendInputLine.Points.Clear();
                     BlendSmoothLine.Points.Clear();
                     Run.IsEnabled = true;
+                    Render.IsEnabled = true;
                 });
+                if (rendering) {
+                    rendering = false;
+                    MessageBox.Show(FindResource("SceneRenderText") as string + path, FindResource("SceneRenderTitle") as string, MessageBoxButton.OK, MessageBoxImage.Information);
+                }
                 timer.Stop();
             }
         }

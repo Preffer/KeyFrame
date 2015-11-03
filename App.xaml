@@ -12,5 +12,7 @@
         <System:String x:Key="SceneSaveText">Scene has been saved to</System:String>
         <System:String x:Key="SceneLoadTitle">Scene loaded</System:String>
         <System:String x:Key="SceneLoadText">Scene has been loaded from</System:String>
+        <System:String x:Key="SceneRenderTitle">Scene rendered</System:String>
+        <System:String x:Key="SceneRenderText">Scene has been rendered to</System:String>
     </Application.Resources>
 </Application>
