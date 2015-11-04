@@ -420,7 +420,7 @@ namespace KeyFrame {
 
         private void SceneChanged(object sender, PropertyChangedEventArgs e) {
             if (e.PropertyName == activePolyline.Name) {
-                if (activePolyline.Points.Count > 0) {
+                if (activePolyline.Points.Count >= 2) {
                     activeSmoothLine.Points = SmoothLine(activePolyline.Points);
                     activePolar = PointToPolar(activePolyline.Points);
                 }
