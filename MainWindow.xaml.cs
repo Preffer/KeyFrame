@@ -435,11 +435,18 @@ namespace KeyFrame {
             PointCollection blend = new PointCollection();
             blend.Add(beginLine.First() + rate * (endLine.First() - beginLine.First()));
 
-            int count = beginPolar.Count - 1;
-            for (int i = 0; i < count; i++) {
-                blend.Add(blend.Last() + Polar.Blend(beginPolar[i], endPolar[i], rate).ToVector());
+            if (beginLine.First() == beginLine.Last() && endLine.First() == endLine.Last()) {
+                int count = beginPolar.Count - 1;
+                for (int i = 0; i < count; i++) {
+                    blend.Add(blend.Last() + Polar.Blend(beginPolar[i], endPolar[i], rate).ToVector());
+                }
+                blend.Add(beginLine.Last() + rate * (endLine.Last() - beginLine.Last()));
+            } else {
+                int count = beginPolar.Count;
+                for (int i = 0; i < count; i++) {
+                    blend.Add(blend.Last() + Polar.Blend(beginPolar[i], endPolar[i], rate).ToVector());
+                }
             }
-            blend.Add(beginLine.Last() + rate * (endLine.Last() - beginLine.Last()));
 
             return blend;
         }
