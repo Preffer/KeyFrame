@@ -14,8 +14,10 @@ namespace KeyFrame {
         }
 
         public Polar(Vector vector) {
-            this.radius = vector.Length;
-            this.angle = Vector.AngleBetween(vector, XAsis) * Math.PI / 180;
+            radius = vector.Length;
+            angle = Vector.AngleBetween(vector, XAsis) * Math.PI / 180;
+
+            if (angle < 0) angle += 2 * Math.PI;
         }
 
         public Vector ToVector() {

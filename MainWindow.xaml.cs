@@ -414,6 +414,8 @@ namespace KeyFrame {
             EndSmoothLine.Points = new PointCollection(EndSmoothLine.Points.Select(p => p * scaleMatrix));
             BlendInputLine.Points = new PointCollection(BlendInputLine.Points.Select(p => p * scaleMatrix));
             BlendSmoothLine.Points = new PointCollection(BlendSmoothLine.Points.Select(p => p * scaleMatrix));
+            beginPolar = PointToPolar(BeginInputLine.Points);
+            endPolar = PointToPolar(EndInputLine.Points);
         }
 
         private void SceneChanged(object sender, PropertyChangedEventArgs e) {
