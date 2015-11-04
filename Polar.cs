@@ -14,22 +14,20 @@ namespace KeyFrame {
         }
 
         public Polar(Vector vector) {
-            radius = vector.Length;
-            angle = Vector.AngleBetween(vector, XAsis) * Math.PI / 180;
-
-            if (angle < 0) angle += 2 * Math.PI;
+            this.radius = vector.Length;
+            this.angle = Vector.AngleBetween(vector, XAsis) * Math.PI / 180;
         }
 
         public Vector ToVector() {
             return new Vector(radius * Math.Cos(angle), -radius * Math.Sin(angle));
         }
 
-        public static Polar operator -(Polar polar1, Polar polar2) {
-            return new Polar(polar1.radius - polar2.radius, polar1.angle - polar2.angle);
-        }
-
         public static Polar operator +(Polar polar1, Polar polar2) {
             return new Polar(polar1.radius + polar2.radius, polar1.angle + polar2.angle);
+        }
+
+        public static Polar operator -(Polar polar1, Polar polar2) {
+            return new Polar(polar1.radius - polar2.radius, polar1.angle - polar2.angle);
         }
 
         public static Polar operator *(Polar polar, double scalar) {
@@ -40,5 +38,18 @@ namespace KeyFrame {
             return new Polar(polar.radius / scalar, polar.angle / scalar);
         }
 
+        public static Polar Blend(Polar polar1, Polar polar2, double rate) {
+            Polar result = polar1 * (1 - rate) + polar2 * rate;
+
+            if (polar1.angle - polar2.angle > Math.PI) {
+                result.angle = polar1.angle * (1 - rate) + (polar2.angle + 2 * Math.PI) * rate;
+            } else {
+                if (polar1.angle - polar2.angle < -Math.PI) {
+                    result.angle = polar1.angle * (1 - rate) + (polar2.angle - 2 * Math.PI) * rate;
+                }
+            }
+
+            return result;
+        }
     }
 }
